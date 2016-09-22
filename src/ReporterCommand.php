@@ -29,7 +29,11 @@ class ReporterCommand extends Command
                     new InputOption('repo', 'r', InputOption::VALUE_REQUIRED),
                     new InputOption('account', 'a', InputOption::VALUE_REQUIRED),
                     new InputOption('pull', 'p', InputOption::VALUE_REQUIRED),
-                    new InputOption('pmd', 'm', InputOption::VALUE_REQUIRED),
+                    new InputOption('md', 'md', InputOption::VALUE_REQUIRED),
+                    //new InputOption('cpd', 'cpd', InputOption::VALUE_REQUIRED),
+                    //new InputOption('jshint', 'js', InputOption::VALUE_REQUIRED),
+                    //new InputOption('lesshint', 'less', InputOption::VALUE_REQUIRED),
+                    //new InputOption('csshint', 'css', InputOption::VALUE_REQUIRED),
                 ))
             );
     }
@@ -41,10 +45,15 @@ class ReporterCommand extends Command
         $reporter = new CloudReporter(
             new \Bitbucket\API\Authentication\Basic('info@samsonos.com', 'Vovan2912~'),
             $logger,
-            new MessDetectorReporter($input->getOption('pmd')),
             $input->getOption('account'),
             $input->getOption('repo'),
             (int)$input->getOption('pull')
         );
+
+        if (null !== ($argument = $input->getOption('md'))) {
+            $reporter->addReporter(new MessDetectorReporter($argument));
+        }
+
+        $reporter->report();
     }
 }

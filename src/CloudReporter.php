@@ -46,7 +46,6 @@ class CloudReporter
     public function __construct(
         AuthenticationInterface $credentials,
         ConsoleLogger $logger,
-        ReporterInterface $detector,
         string $accountName,
         string $repoName,
         int $pullRequestId
@@ -63,21 +62,6 @@ class CloudReporter
         $this->changesets->setCredentials(clone $credentials);
 
         $this->author = $this->getPullRequestAuthor();
-
-
-
-        // Iterate file violations
-//        foreach ($messDetectorViolations as $file => $lines) {
-//            foreach ($lines as $line => $violations) {
-//                // Iterate file line violations
-//                foreach ($violations as $violation) {
-//                    // Send comment to BitBucket pull request
-//                    $this->createComment($violation, $file, $line);
-//                }
-//            }
-//        }
-
-
     }
 
     /**
@@ -90,6 +74,9 @@ class CloudReporter
         $this->reporters[] = $reporter;
     }
 
+    /**
+     * Report violations to BitBucket pull request.
+     */
     public function report()
     {
         // Gather all violations
@@ -108,6 +95,7 @@ class CloudReporter
             // Check if we have PMD violations in that files
             if (array_key_exists($file, $violations)) {
                 // Iterate file violations
+                // TODO: Check lines if they are within this changeset
                 foreach ($violations[$file] as $line => $violations) {
                     // Iterate file line violations
                     foreach ($violations as $violation) {
