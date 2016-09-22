@@ -38,12 +38,10 @@ class ReporterCommand extends Command
     {
         $logger = new ConsoleLogger($output);
 
-        $messDetector = new MessDetector($input->getOption('pmd'));
-        $messDetector->getViolations();
-
         $reporter = new CloudReporter(
             new \Bitbucket\API\Authentication\Basic('info@samsonos.com', 'Vovan2912~'),
             $logger,
+            new MessDetector($input->getOption('pmd')),
             $input->getOption('account'),
             $input->getOption('repo'),
             (int)$input->getOption('pull')

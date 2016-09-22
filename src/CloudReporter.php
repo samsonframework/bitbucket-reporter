@@ -40,6 +40,7 @@ class CloudReporter
     public function __construct(
         AuthenticationInterface $credentials,
         ConsoleLogger $logger,
+        MessDetector $detector,
         string $accountName,
         string $repoName,
         int $pullRequestId
@@ -52,17 +53,26 @@ class CloudReporter
         $this->client = new PullRequests();
         $this->client->setCredentials($credentials);
 
-        // now you can access protected endpoints as $bb_user
-        //$response = $this->client->comments()->all($accountName, $repoName, $pullId);
-
-        //$this->createComment('dummy content4', 'src/FedExBundle/Service/Common/Settings/AddressSettings.php', 54);
-
         $this->changesets = new Changesets();
         $this->changesets->setCredentials($credentials);
-        $this->getChangedFiles();
 
-        // TODO: Read xml file
-        // Create comments in this file
+        // Read PHP Mess detector violations
+        $messDetectorViolations = $detector->getViolations();
+
+        // Iterate only files changed by pull request
+        foreach ($this->getChangedFiles() as $file) {
+            // Check if we have PMD violations in that files
+            if (array_key_exists($file, $messDetectorViolations)) {
+                // Iterate file violations
+                foreach ($messDetectorViolations[$file] as $line => $violations) {
+                    // Iterate file line violations
+                    foreach ($violations as $violation) {
+                        // Send comment to BitBucket pull request
+                        $this->createComment($violation, $file, $line);
+                    }
+                }
+            }
+        }
     }
 
     /**

@@ -13,7 +13,7 @@ namespace samsonframework\bitbucket;
 class MessDetector
 {
     /** XML File path field */
-    const FILEPATH = 'file';
+    const FILEPATH = 'name';
 
     /** XML File line number  */
     const LINENUMBER = 'beginline';
@@ -48,20 +48,23 @@ class MessDetector
     }
 
     /**
-     * Parse XML data and return collection: file => line => violation
-     * @return array
+     * Parse XML data and return collection: file => line => violation.
+     *
+     * @param string $basePath Bse path to code for matching BitBucket paths
+     *
+     * @return array Collection: file => line => violation.
      */
-    public function getViolations()
+    public function getViolations($basePath = '/src')
     {
         /** @var array $violations Collection of violations grouped by files and lines */
         $violations = [];
 
         foreach ($this->xmlData->file as $file) {
-            $pointer = &$violations[(string)$file[self::FILEPATH]];
+            $filePath = (string)$file[self::FILEPATH];
+            $pointer = &$violations[ltrim(substr($filePath, strpos($filePath, $basePath)), '/')];
             foreach ($file->violation as $violation) {
-                $pointer[(string)$violation[self::LINENUMBER]] = trim((string)$violation);
+                $pointer[(string)$violation[self::LINENUMBER]][] = trim((string)$violation);
             }
-
         }
 
         return $violations;
