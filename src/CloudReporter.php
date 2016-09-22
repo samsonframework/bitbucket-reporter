@@ -88,7 +88,7 @@ class CloudReporter
             }
         }
 
-        $this->logger->log(ConsoleLogger::INFO, 'Found '.count($violations).' files with violations');
+        $this->logger->log(ConsoleLogger::INFO, 'Found '.count($violations, COUNT_RECURSIVE).' violations');
 
         // Iterate only files changed by pull request
         foreach ($this->getChangedFiles() as $file) {
