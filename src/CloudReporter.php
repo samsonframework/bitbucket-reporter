@@ -37,10 +37,16 @@ class CloudReporter
     /** @var ConsoleLogger */
     protected $logger;
 
+    /** @var string Pull request author */
+    protected $author;
+
+    /** @var ReporterInterface[] */
+    protected $reporters = [];
+
     public function __construct(
         AuthenticationInterface $credentials,
         ConsoleLogger $logger,
-        MessDetector $detector,
+        ReporterInterface $detector,
         string $accountName,
         string $repoName,
         int $pullRequestId
@@ -56,8 +62,9 @@ class CloudReporter
         $this->changesets = new Changesets();
         $this->changesets->setCredentials(clone $credentials);
 
-        // Read PHP Mess detector violations
-        $messDetectorViolations = $detector->getViolations();
+        $this->author = $this->getPullRequestAuthor();
+
+
 
         // Iterate file violations
 //        foreach ($messDetectorViolations as $file => $lines) {
@@ -70,14 +77,38 @@ class CloudReporter
 //            }
 //        }
 
-        $this->logger->log(ConsoleLogger::INFO, 'Found '.count($messDetectorViolations).' files with violations');
+
+    }
+
+    /**
+     * Add reporter.
+     *
+     * @param ReporterInterface $reporter Reporter instance
+     */
+    public function addReporter(ReporterInterface $reporter)
+    {
+        $this->reporters[] = $reporter;
+    }
+
+    public function report()
+    {
+        // Gather all violations
+        $violations = [];
+        foreach ($this->reporters as $reporter) {
+            if ($reporter instanceof ViolationReporterInterface) {
+                /** @var ViolationReporterInterface $reporter */
+                $violations = array_merge($violations, $reporter->parseViolations());
+            }
+        }
+
+        $this->logger->log(ConsoleLogger::INFO, 'Found '.count($violations).' files with violations');
 
         // Iterate only files changed by pull request
         foreach ($this->getChangedFiles() as $file) {
             // Check if we have PMD violations in that files
-            if (array_key_exists($file, $messDetectorViolations)) {
+            if (array_key_exists($file, $violations)) {
                 // Iterate file violations
-                foreach ($messDetectorViolations[$file] as $line => $violations) {
+                foreach ($violations[$file] as $line => $violations) {
                     // Iterate file line violations
                     foreach ($violations as $violation) {
                         // Send comment to BitBucket pull request
@@ -85,6 +116,29 @@ class CloudReporter
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Get pull request author username.
+     *
+     * @return string Pull request author username
+     */
+    public function getPullRequestAuthor()
+    {
+        $responseString = $this->pullRequests->get($this->accountName, $this->repoName, $this->pullRequestId);
+        try {
+            $responseObject = json_decode($responseString->getContent());
+
+            if (isset($responseObject->error)) {
+                $this->logger->critical($responseObject->error->message);
+            } elseif (isset($responseObject->author)) {
+                return $responseObject->author->username;
+            } else {
+                $this->logger->log(ConsoleLogger::INFO, 'BitBucket response has no values');
+            }
+        } catch (\InvalidArgumentException $exception) {
+            $this->logger->critical('Cannot json_decode BitBucket response');
         }
     }
 
@@ -159,6 +213,9 @@ class CloudReporter
      */
     protected function postComment(array $commentData)
     {
+        // Add pull request author
+        $commentData['content'] = '@'.$this->author.' '.$commentData['content'];
+
         // Switch to old API version
         $this->pullRequests->getClient()->setApiVersion('1.0');
 
