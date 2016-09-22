@@ -3,19 +3,21 @@
  * Created by Vitaly Iegorov <egorov@samsonos.com>.
  * on 22.09.16 at 09:26
  */
-namespace samsonframework\bitbucket\cloud;
+namespace samsonframework\bitbucket;
 
 use Bitbucket\API\Authentication\AuthenticationInterface;
 use Bitbucket\API\Repositories\Changesets;
 use Bitbucket\API\Repositories\PullRequests;
 use Buzz\Message\MessageInterface;
+use Psr\Log\LoggerAwareInterface;
+use Symfony\Component\Console\Logger\ConsoleLogger;
 
 /**
- * Class BitBucketCloudReporter
+ * Class BitBucketCloudReporter.
  *
  * @author Vitaly Egorov <egorov@samsonos.com>
  */
-class BitBucketCloudReporter
+class CloudReporter
 {
     /** @var PullRequests */
     protected $client;
@@ -32,11 +34,20 @@ class BitBucketCloudReporter
     /** @var int BitBucket pull request id */
     protected $pullRequestId;
 
-    public function __construct(AuthenticationInterface $credentials, string $accountName, string $repoName, int $pullRequestId)
-    {
+    /** @var ConsoleLogger */
+    protected $logger;
+
+    public function __construct(
+        AuthenticationInterface $credentials,
+        ConsoleLogger $logger,
+        string $accountName,
+        string $repoName,
+        int $pullRequestId
+    ) {
         $this->accountName = $accountName;
         $this->repoName = $repoName;
         $this->pullRequestId = $pullRequestId;
+        $this->logger = $logger;
 
         $this->client = new PullRequests();
         $this->client->setCredentials($credentials);
@@ -62,10 +73,23 @@ class BitBucketCloudReporter
     public function getChangedFiles()
     {
         $files = [];
-        $response = $this->client->commits($this->accountName, $this->repoName, $this->pullRequestId);
-        foreach (json_decode($response->getContent())->values as $commit) {
-            $changeSet = $this->changesets->diffstat($this->accountName, $this->repoName, $commit->hash);
-            $files[] = json_decode($changeSet->getContent())[0]->file;
+        $responseString = $this->client->commits($this->accountName, $this->repoName, $this->pullRequestId);
+
+        try {
+            $responseObject = json_decode($responseString->getContent());
+
+            if (isset($responseObject->error)) {
+                $this->logger->critical($responseObject->error->message);
+            } elseif (isset($responseObject->values) && is_array($responseObject->values)) {
+                foreach ($responseObject->values as $commit) {
+                    $changeSet = $this->changesets->diffstat($this->accountName, $this->repoName, $commit->hash);
+                    $files[] = json_decode($changeSet->getContent())[0]->file;
+                }
+            } else {
+                $this->logger->log(ConsoleLogger::INFO, 'BitBucket response has no values');
+            }
+        } catch (\InvalidArgumentException $exception) {
+            $this->logger->critical('Cannot json_decode BitBucket response');
         }
 
         return $files;

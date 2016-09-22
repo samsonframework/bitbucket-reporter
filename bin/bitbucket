@@ -9,13 +9,13 @@
  * file that was distributed with this source code.
  */
 
-define('BEHAT_BIN_PATH', __FILE__);
+define('BITBUCKET_BIN_PATH', __FILE__);
 
 if (is_file($autoload = getcwd() . '/vendor/autoload.php')) {
     require $autoload;
 }
 
-if (!class_exists(\samsonframework\bitbucket\cloud\BitBucketCloudReporter::class, true)) {
+if (!class_exists(\samsonframework\bitbucket\BitBucketApplication::class, true)) {
     if (is_file($autoload = __DIR__ . '/../vendor/autoload.php')) {
         require($autoload);
     } elseif (is_file($autoload = __DIR__ . '/../../../autoload.php')) {
@@ -30,4 +30,5 @@ if (!class_exists(\samsonframework\bitbucket\cloud\BitBucketCloudReporter::class
     }
 }
 
-$reporter = new \samsonframework\bitbucket\cloud\BitBucketCloudReporter();
+$application = new \samsonframework\bitbucket\BitBucketApplication();
+$application->run();
