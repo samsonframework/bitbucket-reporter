@@ -20,7 +20,7 @@ use Symfony\Component\Console\Logger\ConsoleLogger;
 class CloudReporter
 {
     /** @var PullRequests */
-    protected $client;
+    protected $pullRequests;
 
     /** @var Changesets */
     protected $changeSets;
@@ -45,19 +45,32 @@ class CloudReporter
         string $repoName,
         int $pullRequestId
     ) {
-        $this->accountName = $accountName;
-        $this->repoName = $repoName;
+        $this->accountName = trim($accountName);
+        $this->repoName = trim($repoName);
         $this->pullRequestId = $pullRequestId;
         $this->logger = $logger;
 
-        $this->client = new PullRequests();
-        $this->client->setCredentials($credentials);
+        $this->pullRequests = new PullRequests();
+        $this->pullRequests->setCredentials($credentials);
 
         $this->changesets = new Changesets();
-        $this->changesets->setCredentials($credentials);
+        $this->changesets->setCredentials(clone $credentials);
 
         // Read PHP Mess detector violations
         $messDetectorViolations = $detector->getViolations();
+
+        // Iterate file violations
+//        foreach ($messDetectorViolations as $file => $lines) {
+//            foreach ($lines as $line => $violations) {
+//                // Iterate file line violations
+//                foreach ($violations as $violation) {
+//                    // Send comment to BitBucket pull request
+//                    $this->createComment($violation, $file, $line);
+//                }
+//            }
+//        }
+
+        $this->logger->log(ConsoleLogger::INFO, 'Found '.count($messDetectorViolations).' files with violations');
 
         // Iterate only files changed by pull request
         foreach ($this->getChangedFiles() as $file) {
@@ -68,7 +81,7 @@ class CloudReporter
                     // Iterate file line violations
                     foreach ($violations as $violation) {
                         // Send comment to BitBucket pull request
-                        $this->createComment($violation, $file, $line);
+                        $this->createFileComment($violation, $file, $line);
                     }
                 }
             }
@@ -83,7 +96,7 @@ class CloudReporter
     public function getChangedFiles()
     {
         $files = [];
-        $responseString = $this->client->commits($this->accountName, $this->repoName, $this->pullRequestId);
+        $responseString = $this->pullRequests->commits($this->accountName, $this->repoName, $this->pullRequestId);
 
         try {
             $responseObject = json_decode($responseString->getContent());
@@ -106,23 +119,52 @@ class CloudReporter
     }
 
     /**
+     * Create general pull request comment.
+     *
+     * @param string $content The comment content
+     *
+     * @return MessageInterface
+     */
+    public function createGeneralComment(string $content)
+    {
+        return $this->postComment(['content' => $content]);
+    }
+
+    /**
      * Add a new comment to pull request.
      *
-     * @param  string     $content  The comment
+     * @param string      $content  The comment content
      * @param null|string $filename File name
      * @param int|null    $lineFrom Source code line number
      *
      * @return MessageInterface
      */
-    public function createComment(string $content, string $filename = null, int $lineFrom = null) : MessageInterface
+    public function createFileComment(string $content, string $filename = null, int $lineFrom = null) : MessageInterface
     {
-        return $this->client->requestPost(
+        $this->logger->log(ConsoleLogger::INFO, 'Creating comment in: '.$filename.'#'.$lineFrom.' - '.$content);
+
+        return $this->postComment([
+            'content' => $content,
+            'filename' => $filename,
+            'line_from' => $lineFrom
+        ]);
+    }
+
+    /**
+     * Low level post request for creating pull request comment.
+     *
+     * @param array $commentData Comment data
+     *
+     * @return MessageInterface
+     */
+    protected function postComment(array $commentData)
+    {
+        // Switch to old API version
+        $this->pullRequests->getClient()->setApiVersion('1.0');
+
+        return $this->pullRequests->comments()->requestPost(
             sprintf('repositories/%s/%s/pullrequests/%d/comments', $this->accountName, $this->repoName, $this->pullRequestId),
-            [
-                'content' => $content,
-                'filename' => $filename,
-                'line_from' => $lineFrom
-            ]
+            $commentData
         );
     }
 }
