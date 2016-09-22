@@ -30,6 +30,7 @@ class ReporterCommand extends Command
                     new InputOption('account', 'a', InputOption::VALUE_REQUIRED),
                     new InputOption('pull', 'p', InputOption::VALUE_REQUIRED),
                     new InputOption('md', 'md', InputOption::VALUE_REQUIRED),
+                    new InputOption('screenshots', 's', InputOption::VALUE_REQUIRED),
                     //new InputOption('cpd', 'cpd', InputOption::VALUE_REQUIRED),
                     //new InputOption('jshint', 'js', InputOption::VALUE_REQUIRED),
                     //new InputOption('lesshint', 'less', InputOption::VALUE_REQUIRED),
@@ -52,6 +53,10 @@ class ReporterCommand extends Command
 
         if (null !== ($argument = $input->getOption('md'))) {
             $reporter->addReporter(new MessDetectorReporter($argument));
+        }
+
+        if (null !== ($argument = $input->getOption('screenshots'))) {
+            $reporter->addReporter(new ScreenshotReporter($argument));
         }
 
         $reporter->report();

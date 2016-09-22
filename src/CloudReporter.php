@@ -105,6 +105,12 @@ class CloudReporter
                 }
             }
         }
+
+        if (array_key_exists(ScreenshotReporter::MARKER, $violations)) {
+            foreach ($violations[ScreenshotReporter::MARKER][0] as $screenshot) {
+                $this->createGeneralComment('![Screent shot]('.$screenshot.')');
+            }
+        }
     }
 
     /**

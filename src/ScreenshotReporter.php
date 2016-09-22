@@ -12,22 +12,18 @@ namespace samsonframework\bitbucket;
  */
 class ScreenshotReporter extends Reporter implements ViolationReporterInterface
 {
+    /** Violations collection marker */
+    const MARKER = 'screenshots';
+
     /** {@inheritdoc} */
     public function parseViolations() : array
     {
-
-        // Read XML and convert to array
-        $xmlData = simplexml_load_string(file_get_contents($this->path));
-
         /** @var array $violations Collection of violations grouped by files and lines */
         $violations = [];
 
-        foreach ($xmlData->file as $file) {
-            $filePath = (string)$file[self::FILEPATH];
-            $pointer = &$violations[ltrim(substr($filePath, strpos($filePath, $this->basePath)), '/')];
-            foreach ($file->violation as $violation) {
-                $pointer[(string)$violation[self::LINENUMBER]][] = trim((string)$violation);
-            }
+        // Collection screenshots
+        foreach (glob($this->path.'/*.jpg') as $image) {
+            $violations[self::MARKER][0][] = $image;
         }
 
         return $violations;
