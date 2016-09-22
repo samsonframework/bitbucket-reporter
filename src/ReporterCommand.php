@@ -29,6 +29,7 @@ class ReporterCommand extends Command
                     new InputOption('repo', 'r', InputOption::VALUE_REQUIRED),
                     new InputOption('account', 'a', InputOption::VALUE_REQUIRED),
                     new InputOption('pull', 'p', InputOption::VALUE_REQUIRED),
+                    new InputOption('pmd', 'm', InputOption::VALUE_REQUIRED),
                 ))
             );
     }
@@ -36,6 +37,9 @@ class ReporterCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $logger = new ConsoleLogger($output);
+
+        $messDetector = new MessDetector($input->getOption('pmd'));
+        $messDetector->getViolations();
 
         $reporter = new CloudReporter(
             new \Bitbucket\API\Authentication\Basic('info@samsonos.com', 'Vovan2912~'),
