@@ -1,38 +1,41 @@
 {
-    "name": "samsonframework/bitbucket-reporter",
-    "description": "SamsonFramework BitBucket reporter",
-    "keywords": [
-        "samsonframework",
-        "bitbucket"
-    ],
-    "authors": [
-        {
-            "name": "Vitaly Iegorov",
-            "email": "egorov@samsonos.com"
-        }
-    ],
-    "require": {
-        "gentle/bitbucket-api": "*"
-    },
-    "require-dev": {
-      "phpunit/phpunit": "5.*",
-      "satooshi/php-coveralls": "*"
-    },
-    "license": "Open Software License (OSL) v 3.0",
-    "homepage": "http://samsonos.com/",
-    "autoload": {
-        "psr-4": {
-            "samsonframework\\bitbucket\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "samsonframework\\bitbucket\\tests\\": "tests/"
-        }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.x-dev"
-        }
+  "name": "samsonframework/bitbucket-reporter",
+  "description": "SamsonFramework BitBucket reporter",
+  "keywords": [
+    "samsonframework",
+    "bitbucket"
+  ],
+  "authors": [
+    {
+      "name": "Vitaly Iegorov",
+      "email": "egorov@samsonos.com"
     }
+  ],
+  "require": {
+    "gentle/bitbucket-api": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "5.*",
+    "satooshi/php-coveralls": "*"
+  },
+  "license": "Open Software License (OSL) v 3.0",
+  "homepage": "http://samsonos.com/",
+  "autoload": {
+    "psr-4": {
+      "samsonframework\\bitbucket\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "samsonframework\\bitbucket\\tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.x-dev"
+    }
+  },
+  "bin": [
+    "bin/bitbucket"
+  ]
 }
