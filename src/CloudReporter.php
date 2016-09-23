@@ -79,37 +79,8 @@ class CloudReporter
      */
     public function report()
     {
-        // Gather all violations
-        $violations = [];
         foreach ($this->reporters as $reporter) {
-            if ($reporter instanceof ViolationReporterInterface) {
-                /** @var ViolationReporterInterface $reporter */
-                $violations = array_merge($violations, $reporter->parseViolations());
-            }
-        }
-
-        $this->logger->log(ConsoleLogger::INFO, 'Found '.count($violations, COUNT_RECURSIVE).' violations');
-
-        // Iterate only files changed by pull request
-        foreach ($this->getChangedFiles() as $file) {
-            // Check if we have PMD violations in that files
-            if (array_key_exists($file, $violations)) {
-                // Iterate file violations
-                // TODO: Check lines if they are within this changeset
-                foreach ($violations[$file] as $line => $violations) {
-                    // Iterate file line violations
-                    foreach ($violations as $violation) {
-                        // Send comment to BitBucket pull request
-                        $this->createFileComment($violation, $file, $line);
-                    }
-                }
-            }
-        }
-
-        if (array_key_exists(ScreenshotReporter::MARKER, $violations)) {
-            foreach ($violations[ScreenshotReporter::MARKER][0] as $screenshot) {
-                $this->createGeneralComment('![Screent shot]('.$screenshot.')');
-            }
+            $reporter->report($this, $this->logger);
         }
     }
 

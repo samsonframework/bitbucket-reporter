@@ -5,6 +5,8 @@
  */
 namespace samsonframework\bitbucket;
 
+use Symfony\Component\Console\Logger\ConsoleLogger;
+
 /**
  * Reporter interface.
  *
@@ -12,5 +14,5 @@ namespace samsonframework\bitbucket;
  */
 interface ReporterInterface
 {
-
+    public function report(CloudReporter $bitbucket, ConsoleLogger $logger);
 }

@@ -4,6 +4,8 @@
  * on 22.09.16 at 15:26
  */
 namespace samsonframework\bitbucket;
+use Symfony\Component\Console\Logger\ConsoleLogger;
+
 
 /**
  * Screenshot reporter.
@@ -23,9 +25,18 @@ class ScreenshotReporter extends Reporter implements ViolationReporterInterface
 
         // Collection screenshots
         foreach (glob($this->path.'/*.jpg') as $image) {
-            $violations[self::MARKER][0][] = $image;
+            $violations[] = $image;
         }
 
         return $violations;
+    }
+
+    /** {@inheritdoc} */
+    public function report(CloudReporter $bitbucket, ConsoleLogger $logger)
+    {
+        foreach ($this->parseViolations() as $screenshot) {
+            $bitbucket->createGeneralComment('![Screent shot](' . $screenshot . ')');
+            $logger->log(ConsoleLogger::INFO, 'Posting screenshot:' . $screenshot);
+        }
     }
 }

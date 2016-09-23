@@ -4,6 +4,7 @@
  * on 22.09.16 at 15:26
  */
 namespace samsonframework\bitbucket;
+use Symfony\Component\Console\Logger\ConsoleLogger;
 
 /**
  * PHP mess detector violations reporter.
@@ -52,5 +53,29 @@ class MessDetectorReporter extends Reporter implements ViolationReporterInterfac
         }
 
         return $violations;
+    }
+
+    /** {@inheritdoc} */
+    public function report(CloudReporter $bitbucket, ConsoleLogger $logger)
+    {
+        $violations = $this->parseViolations();
+
+        $logger->log(ConsoleLogger::INFO, 'Found '.count($violations, COUNT_RECURSIVE).' violations');
+
+        // Iterate only files changed by pull request
+        foreach ($bitbucket->getChangedFiles() as $file) {
+            // Check if we have PMD violations in that files
+            if (array_key_exists($file, $violations)) {
+                // Iterate file violations
+                // TODO: Check lines if they are within this changeset
+                foreach ($violations[$file] as $line => $violations) {
+                    // Iterate file line violations
+                    foreach ($violations as $violation) {
+                        // Send comment to BitBucket pull request
+                        $bitbucket->createFileComment($violation, $file, $line);
+                    }
+                }
+            }
+        }
     }
 }
