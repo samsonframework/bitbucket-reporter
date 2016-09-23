@@ -4,8 +4,8 @@
  * on 22.09.16 at 15:26
  */
 namespace samsonframework\bitbucket;
-use Symfony\Component\Console\Logger\ConsoleLogger;
 
+use Symfony\Component\Console\Logger\ConsoleLogger;
 
 /**
  * Screenshot reporter.
