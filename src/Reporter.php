@@ -22,6 +22,11 @@ abstract class Reporter
      */
     public function __construct(string $path)
     {
+        // Validate file
+        if (!is_file($path)) {
+            throw new \InvalidArgumentException($path.' - does not exists or not a file');
+        }
+
         $this->path = $path;
     }
 }

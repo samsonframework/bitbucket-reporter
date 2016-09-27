@@ -26,6 +26,8 @@ class ReporterCommand extends Command
             ->setDescription('Report data to BitBucket pull request')
             ->setDefinition(
                 new InputDefinition(array(
+                    new InputOption('username', 'u', InputOption::VALUE_REQUIRED),
+                    new InputOption('password', 'pwd', InputOption::VALUE_REQUIRED),
                     new InputOption('repo', 'r', InputOption::VALUE_REQUIRED),
                     new InputOption('account', 'a', InputOption::VALUE_REQUIRED),
                     new InputOption('pull', 'p', InputOption::VALUE_REQUIRED),
@@ -44,7 +46,7 @@ class ReporterCommand extends Command
         $logger = new ConsoleLogger($output);
 
         $reporter = new CloudReporter(
-            new \Bitbucket\API\Authentication\Basic('info@samsonos.com', 'Vovan2912~'),
+            new \Bitbucket\API\Authentication\Basic($input->getOption('username'), $input->getOption('password')),
             $logger,
             $input->getOption('account'),
             $input->getOption('repo'),
