@@ -26,13 +26,13 @@ class ReporterCommand extends Command
             ->setDescription('Report data to BitBucket pull request')
             ->setDefinition(
                 new InputDefinition(array(
-                    new InputOption('username', 'u', InputOption::VALUE_REQUIRED),
-                    new InputOption('password', 'pwd', InputOption::VALUE_REQUIRED),
-                    new InputOption('repo', 'r', InputOption::VALUE_REQUIRED),
-                    new InputOption('account', 'a', InputOption::VALUE_REQUIRED),
-                    new InputOption('pull', 'p', InputOption::VALUE_REQUIRED),
-                    new InputOption('md', 'md', InputOption::VALUE_REQUIRED),
-                    new InputOption('screenshots', 's', InputOption::VALUE_REQUIRED),
+                    new InputOption('username', 'u', InputOption::VALUE_REQUIRED, 'BitBucket account user name'),
+                    new InputOption('password', 'pwd', InputOption::VALUE_REQUIRED, ' BitBucket account password'),
+                    new InputOption('repo', 'r', InputOption::VALUE_REQUIRED, 'BitBucket repository name'),
+                    new InputOption('account', 'a', InputOption::VALUE_REQUIRED, 'BitBucket account name'),
+                    new InputOption('pull', 'p', InputOption::VALUE_REQUIRED, 'BiBucket pull request id'),
+                    new InputOption('md', 'md', InputOption::VALUE_REQUIRED, 'PHP Mess Detector reporter xml path'),
+                    new InputOption('screenshots', 's', InputOption::VALUE_REQUIRED, 'ScreenShots reporter folder path'),
                     //new InputOption('cpd', 'cpd', InputOption::VALUE_REQUIRED),
                     //new InputOption('jshint', 'js', InputOption::VALUE_REQUIRED),
                     //new InputOption('lesshint', 'less', InputOption::VALUE_REQUIRED),
@@ -44,6 +44,8 @@ class ReporterCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $logger = new ConsoleLogger($output);
+
+        if ()
 
         $reporter = new CloudReporter(
             new \Bitbucket\API\Authentication\Basic($input->getOption('username'), $input->getOption('password')),
