@@ -45,8 +45,6 @@ class ReporterCommand extends Command
     {
         $logger = new ConsoleLogger($output);
 
-        if ()
-
         $reporter = new CloudReporter(
             new \Bitbucket\API\Authentication\Basic($input->getOption('username'), $input->getOption('password')),
             $logger,
